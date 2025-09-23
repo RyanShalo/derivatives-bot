@@ -21,9 +21,9 @@ export const APP_IDS = {
     STAGING: 29934,
     STAGING_BE: 29934,
     STAGING_ME: 29934,
-    PRODUCTION: 65555,
-    PRODUCTION_BE: 65556,
-    PRODUCTION_ME: 65557,
+    PRODUCTION: 103104,
+    PRODUCTION_BE: 103104,
+    PRODUCTION_ME: 103104,
 };
 
 export const livechat_license_id = 12049137;
@@ -34,9 +34,9 @@ export const domain_app_ids = {
     'staging-dbot.deriv.com': APP_IDS.STAGING,
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
     'staging-dbot.deriv.me': APP_IDS.STAGING_ME,
-    'dbot.deriv.com': APP_IDS.PRODUCTION,
-    'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
-    'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
+    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION,
+    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION_BE,
+    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION_ME,
 };
 
 export const getCurrentProductionDomain = () =>

@@ -1,5 +1,6 @@
 import brandConfig from '../../../../../brand.config.json';
 import { isStaging } from '../url/helpers';
+import {URLUtils } from '@deriv-com/utils';
 
 // Simple environment detection based on hostname
 const getCurrentEnvironment = (): 'staging' | 'production' => {
@@ -164,22 +165,32 @@ export const getDebugServiceWorker = () => {
 
 export const generateOAuthURL = () => {
     try {
-        // Use brand config for login URLs
+        // Use URLUtils to get the OAuth URL
+        const { getOauthURL } = URLUtils;
+        const oauth_url = getOauthURL();
+        
+        if (oauth_url) {
+            return oauth_url;
+        }
+        
+        // Fallback if getOauthURL returns nothing
         const environment = getCurrentEnvironment();
         const hostname = brandConfig?.brand_hostname?.[environment];
 
         if (hostname) {
-            return `https://${hostname}/login`;
+            const clean_hostname = hostname.replace('/dashboard', '');
+            return `https://${clean_hostname}/oauth2/authorize`;
         }
+        
     } catch (error) {
-        console.error('Error accessing brand config:', error);
+        console.error('Error accessing OAuth URL:', error);
     }
 
-    // Fallback to hardcoded URLs if brand config fails
+    // Final fallback to hardcoded URLs
     const hostname = window.location.hostname;
     if (hostname.includes('staging')) {
-        return 'https://staging-home.deriv.com/dashboard/login';
+        return 'https://staging-oauth.deriv.com/oauth2/authorize';
     } else {
-        return 'https://home.deriv.com/dashboard/login';
+        return 'https://oauth.deriv.com/oauth2/authorize';
     }
 };

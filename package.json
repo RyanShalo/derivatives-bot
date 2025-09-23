@@ -5,6 +5,7 @@
   "engines": {
       "node": "20.x"
   },
+  "homepage": ".",
   "scripts": {
       "start": "rsbuild dev -o",
       "build": "rsbuild build",

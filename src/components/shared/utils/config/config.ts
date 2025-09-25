@@ -1,6 +1,5 @@
 import brandConfig from '../../../../../brand.config.json';
 import { isStaging } from '../url/helpers';
-import {URLUtils } from '@deriv-com/utils';
 
 // Simple environment detection based on hostname
 const getCurrentEnvironment = (): 'staging' | 'production' => {
@@ -22,9 +21,9 @@ export const APP_IDS = {
     STAGING: 29934,
     STAGING_BE: 29934,
     STAGING_ME: 29934,
-    PRODUCTION: 103104,
-    PRODUCTION_BE: 103104,
-    PRODUCTION_ME: 103104,
+    PRODUCTION: 103958,
+    PRODUCTION_BE: 65556,
+    PRODUCTION_ME: 65557,
 };
 
 export const livechat_license_id = 12049137;
@@ -35,9 +34,9 @@ export const domain_app_ids = {
     'staging-dbot.deriv.com': APP_IDS.STAGING,
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
     'staging-dbot.deriv.me': APP_IDS.STAGING_ME,
-    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION,
-    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION_BE,
-    'derivatives-bot-phi.vercel.app': APP_IDS.PRODUCTION_ME,
+    '': APP_IDS.PRODUCTION,
+    'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
+    'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
 };
 
 export const getCurrentProductionDomain = () =>
@@ -164,33 +163,7 @@ export const getDebugServiceWorker = () => {
 };
 
 export const generateOAuthURL = () => {
-    try {
-        // Use URLUtils to get the OAuth URL
-        const { getOauthURL } = URLUtils;
-        const oauth_url = getOauthURL();
-        
-        if (oauth_url) {
-            return oauth_url;
-        }
-        
-        // Fallback if getOauthURL returns nothing
-        const environment = getCurrentEnvironment();
-        const hostname = brandConfig?.brand_hostname?.[environment];
-
-        if (hostname) {
-            const clean_hostname = hostname.replace('/dashboard', '');
-            return `https://${clean_hostname}/oauth2/authorize`;
-        }
-        
-    } catch (error) {
-        console.error('Error accessing OAuth URL:', error);
-    }
-
-    // Final fallback to hardcoded URLs
-    const hostname = window.location.hostname;
-    if (hostname.includes('staging')) {
-        return 'https://staging-oauth.deriv.com/oauth2/authorize';
-    } else {
-        return 'https://oauth.deriv.com/oauth2/authorize';
-    }
+    const app_id = getAppId();
+    return `https://oauth.deriv.com/oauth2/authorize?app_id=${app_id}&l=EN&brand=deriv`;
 };
+

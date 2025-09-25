@@ -63,10 +63,11 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                     <Button
                         tertiary
                         onClick={() => {
+                            const appId = getAppId();
                             console.log('getAppId() returns:', getAppId());
                             console.log('Hardcoded app ID: 36300');
                             // Direct OAuth URL for testing - replace 36300 with your actual app ID
-                            const directOAuthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=103958&l=EN&brand=deriv`;
+                            const directOAuthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${appId}&l=EN&brand=deriv`;
 
                             console.log('Direct OAuth URL:', directOAuthUrl);
                             window.location.replace(directOAuthUrl);

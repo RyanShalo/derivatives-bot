@@ -21,7 +21,7 @@ export const APP_IDS = {
     STAGING: 29934,
     STAGING_BE: 29934,
     STAGING_ME: 29934,
-    PRODUCTION: 103958,
+    PRODUCTION: 65555,
     PRODUCTION_BE: 65556,
     PRODUCTION_ME: 65557,
 };
@@ -34,7 +34,7 @@ export const domain_app_ids = {
     'staging-dbot.deriv.com': APP_IDS.STAGING,
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
     'staging-dbot.deriv.me': APP_IDS.STAGING_ME,
-    '': APP_IDS.PRODUCTION,
+    'dbot.deriv.com': APP_IDS.PRODUCTION,
     'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
     'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
 };
@@ -163,7 +163,23 @@ export const getDebugServiceWorker = () => {
 };
 
 export const generateOAuthURL = () => {
-    const app_id = getAppId();
-    return `https://oauth.deriv.com/oauth2/authorize?app_id=${app_id}&l=EN&brand=deriv`;
-};
+    try {
+        // Use brand config for login URLs
+        const environment = getCurrentEnvironment();
+        const hostname = brandConfig?.brand_hostname?.[environment];
 
+        if (hostname) {
+            return `https://${hostname}/login`;
+        }
+    } catch (error) {
+        console.error('Error accessing brand config:', error);
+    }
+
+    // Fallback to hardcoded URLs if brand config fails
+    const hostname = window.location.hostname;
+    if (hostname.includes('staging')) {
+        return 'https://staging-home.deriv.com/dashboard/login';
+    } else {
+        return 'https://home.deriv.com/dashboard/login';
+    }
+};

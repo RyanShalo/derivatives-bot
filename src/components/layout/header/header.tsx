@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
-import { generateOAuthURL, getAppId, standalone_routes } from '@/components/shared';
+import { generateOAuthURL, getAppId, getCurrentProductionDomain, getDefaultAppIdAndUrl, isStaging, isTestLink, standalone_routes } from '@/components/shared';
 import Button from '@/components/shared_ui/button';
 import useActiveAccount from '@/hooks/api/account/useActiveAccount';
 import { useOauth2 } from '@/hooks/auth/useOauth2';
@@ -63,12 +63,18 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                     <Button
                         tertiary
                         onClick={() => {
-                            const appId = getAppId();
-                            console.log('getAppId() returns:', getAppId());
-                            console.log('Hardcoded app ID: 36300');
-                            // Direct OAuth URL for testing - replace 36300 with your actual app ID
-                            const directOAuthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${appId}&l=EN&brand=deriv`;
+                            const appIdFromGetAppId = getAppId();
+                            const { app_id: appIdFromDefault } = getDefaultAppIdAndUrl();
 
+                            console.log('getAppId() returns:', appIdFromGetAppId);
+                            console.log('getDefaultAppIdAndUrl() returns:', appIdFromDefault);
+                            console.log('localStorage config.app_id:', localStorage.getItem('config.app_id'));
+                            console.log('isStaging():', isStaging());
+                            console.log('isTestLink():', isTestLink());
+                            console.log('Current domain:', getCurrentProductionDomain());
+
+                            // Use the same app_id that will be used for validation
+                            const directOAuthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${appIdFromDefault}&l=EN&brand=deriv`;
                             console.log('Direct OAuth URL:', directOAuthUrl);
                             window.location.replace(directOAuthUrl);
                         }}

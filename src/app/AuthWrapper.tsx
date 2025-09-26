@@ -7,10 +7,11 @@ import { getAuthError, getDefaultError } from '@/components/shared/utils/constan
 import { generateDerivApiInstance } from '@/external/bot-skeleton/services/api/appId';
 import { observer as globalObserver } from '@/external/bot-skeleton/utils/observer';
 import { clearAuthData } from '@/utils/auth-utils';
-import { localize } from '@deriv-com/translations';
+import { getInitialLanguage, localize } from '@deriv-com/translations';
 import { URLUtils } from '@deriv-com/utils';
 import App from './App';
-import { getAppId } from '@/components/shared';
+import { APP_IDS, getAppId, getSocketURL } from '@/components/shared';
+import { website_name } from '@/utils/site-config';
 
 
 
@@ -21,60 +22,61 @@ const setLocalStorageToken = async (
     setTokenError: React.Dispatch<React.SetStateAction<string | null>>,
     setIsAuthError: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-
-    console.log('=== Token Validation Debug ===');
-    console.log('loginInfo:', loginInfo);
-    console.log('URL search params:', window.location.search);
     // Extract token and account_type from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const accountType = urlParams.get('account_type');
 
-     console.log('Token from URL:', token);
-    console.log('Account type from URL:', accountType);
-
     // Only save account_type when BOTH token and account_type are present
     if (token && accountType) {
         localStorage.setItem('account_type', accountType);
     }
-    // If no token or account_type, don't save anything - will fallback to demo server
 
     if (loginInfo.length) {
         URLUtils.filterSearchParams(paramsToDelete);
 
         try {
+            // **FIX: Temporarily set production server for production app_id**
+            const currentAppId = getAppId();
+            const isProductionAppId = currentAppId == APP_IDS.PRODUCTION || 
+                                   currentAppId == APP_IDS.PRODUCTION_BE || 
+                                   currentAppId == APP_IDS.PRODUCTION_ME;
+            
+            if (isProductionAppId && !accountType) {
+                // For production app_ids without explicit account_type, use production server
+                localStorage.setItem('config.server_url', 'realv2.derivws.com');
+                console.log('Temporarily using production server for validation');
+            }
+
             const api = await generateDerivApiInstance();
-            console.log('API instance created:', !!api);
+            console.log('API WebSocket URL:', `wss://${getSocketURL()}/websockets/v3?app_id=${getAppId()}&l=${getInitialLanguage()}&brand=${website_name.toLowerCase()}`);
 
             if (api) {
-                console.log('Authorizing with token:', loginInfo[0].token);
-                console.log('Using app_id for validation:', getAppId());
                 const { authorize, error } = await api.authorize(loginInfo[0].token);
-                console.log('Authorization response:', { authorize, error });
                 api.disconnect();
+                
                 if (error) {
-                    // Check if the error is due to an invalid token
+                    // Clear temporary config
+                    localStorage.removeItem('config.server_url');
+                    
                     if (error.code === 'InvalidToken') {
-                        // Set error message to show PageError for auth errors
                         setTokenError(getAuthError().description);
                         setIsAuthError(true);
                         setIsAuthComplete(true);
-
-                        // Don't emit InvalidToken event to prevent automatic reloads from other handlers
-                        // Only clear auth data if user is logged out
                         if (Cookies.get('logged_state') === 'false') {
-                            // If the user is not logged out, we need to clear the local storage
                             clearAuthData();
                         }
-                        return; // Don't proceed with token storage
+                        return;
                     } else {
-                        // Handle other API errors - use existing modal behavior
                         setTokenError(getDefaultError().description);
                         setIsAuthError(false);
                         setIsAuthComplete(true);
                         return;
                     }
                 } else {
+                    // Clear temporary config after successful validation
+                    localStorage.removeItem('config.server_url');
+                    
                     localStorage.setItem('client.country', authorize.country);
                     const firstId = authorize?.account_list[0]?.loginid;
                     const filteredTokens = loginInfo.filter(token => token.loginid === firstId);
@@ -88,6 +90,8 @@ const setLocalStorageToken = async (
 
             localStorage.setItem('authToken', loginInfo[0].token);
         } catch (error) {
+            // Clear temporary config on error
+            localStorage.removeItem('config.server_url');
             console.error('Error during token exchange:', error);
             setTokenError(getDefaultError().description);
             setIsAuthError(false);

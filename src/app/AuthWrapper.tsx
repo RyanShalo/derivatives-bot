@@ -10,6 +10,9 @@ import { clearAuthData } from '@/utils/auth-utils';
 import { localize } from '@deriv-com/translations';
 import { URLUtils } from '@deriv-com/utils';
 import App from './App';
+import { getAppId } from '@/components/shared';
+
+
 
 const setLocalStorageToken = async (
     loginInfo: URLUtils.LoginInfo[],
@@ -18,10 +21,17 @@ const setLocalStorageToken = async (
     setTokenError: React.Dispatch<React.SetStateAction<string | null>>,
     setIsAuthError: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
+
+    console.log('=== Token Validation Debug ===');
+    console.log('loginInfo:', loginInfo);
+    console.log('URL search params:', window.location.search);
     // Extract token and account_type from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const accountType = urlParams.get('account_type');
+
+     console.log('Token from URL:', token);
+    console.log('Account type from URL:', accountType);
 
     // Only save account_type when BOTH token and account_type are present
     if (token && accountType) {
@@ -34,9 +44,13 @@ const setLocalStorageToken = async (
 
         try {
             const api = await generateDerivApiInstance();
+            console.log('API instance created:', !!api);
 
             if (api) {
+                console.log('Authorizing with token:', loginInfo[0].token);
+                console.log('Using app_id for validation:', getAppId());
                 const { authorize, error } = await api.authorize(loginInfo[0].token);
+                console.log('Authorization response:', { authorize, error });
                 api.disconnect();
                 if (error) {
                     // Check if the error is due to an invalid token
@@ -80,6 +94,7 @@ const setLocalStorageToken = async (
         }
     }
 };
+
 
 export const AuthWrapper = () => {
     const [isAuthComplete, setIsAuthComplete] = React.useState(false);

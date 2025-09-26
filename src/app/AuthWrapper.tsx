@@ -27,9 +27,17 @@ const setLocalStorageToken = async (
     const token = urlParams.get('token');
     const accountType = urlParams.get('account_type');
 
-    // Only save account_type when BOTH token and account_type are present
+    // **FIX: Determine account type from app_id when URL params are null**
+    const currentAppId = getAppId();
+    const isProductionAppId = [APP_IDS.PRODUCTION, APP_IDS.PRODUCTION_BE, APP_IDS.PRODUCTION_ME].includes(Number(currentAppId));
+    
     if (token && accountType) {
         localStorage.setItem('account_type', accountType);
+    } else if (loginInfo.length && !accountType) {
+        // If we have loginInfo but no account_type in URL, determine from app_id
+        const inferredAccountType = isProductionAppId ? 'real' : 'demo';
+        localStorage.setItem('account_type', inferredAccountType);
+        console.log('Inferred account_type from app_id:', inferredAccountType);
     }
 
     if (loginInfo.length) {
